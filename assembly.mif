@@ -1,0 +1,20 @@
+WIDTH=16;
+DEPTH=2048;
+
+ADDRESS_RADIX=HEX;
+DATA_RADIX=HEX;
+
+CONTENT BEGIN
+0000: B803; -- LOADI 3      ; we want to access page 3
+0001: 9870; -- OUT EXTMEM_INDEX_EN
+0002: B80A; -- LOADI 10    ; we want offset 10 in page 3
+0003: 9871; -- OUT EXTMEM_OFFSET_EN
+0004: B805; -- LOADI 5
+0005: 9873; -- OUT EXTMEM_DATA_EN       ; write into page 3 offset 10
+0006: B800; -- LOADI 0
+0007: 9073; -- IN EXTMEM_DATA_EN
+0008: 9801; -- OUT LEDs
+0009: 2809; -- 	JUMP HERE
+000A: 03FF; -- ALLON: DW 1023
+[000B..07FF] : 0000; -- [empty memory]
+END;
