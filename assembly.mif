@@ -5,16 +5,26 @@ ADDRESS_RADIX=HEX;
 DATA_RADIX=HEX;
 
 CONTENT BEGIN
-0000: B803; -- LOADI 3      ; we want to access page 3
-0001: 9870; -- OUT EXTMEM_INDEX_EN
-0002: B80A; -- LOADI 10    ; we want offset 10 in page 3
-0003: 9871; -- OUT EXTMEM_OFFSET_EN
-0004: B805; -- LOADI 5
-0005: 9873; -- OUT EXTMEM_DATA_EN       ; write into page 3 offset 10
-0006: B800; -- LOADI 0
-0007: 9073; -- IN EXTMEM_DATA_EN
-0008: 9801; -- OUT LEDs
-0009: 2809; -- 	JUMP HERE
-000A: 03FF; -- ALLON: DW 1023
-[000B..07FF] : 0000; -- [empty memory]
+0000: B803; -- LOADI 3
+0001: 9872; -- OUT EXTMEM_PERMISSION_EN
+0002: B803; -- LOADI 3      ; we want to access page 3
+0003: 9870; -- OUT EXTMEM_INDEX_EN
+0004: B80A; -- LOADI 10    ; we want offset 10 in page 3
+0005: 9871; -- OUT EXTMEM_OFFSET_EN
+0006: B807; -- LOADI 7
+0007: 9873; -- OUT EXTMEM_DATA_EN       ; write into page 3 offset 10
+0008: B800; -- LOADI 0
+0009: 9872; -- OUT EXTMEM_PERMISSION_EN
+000A: B803; -- LOADI 3      ; we want to access page 3
+000B: 9870; -- OUT EXTMEM_INDEX_EN
+000C: B80A; -- LOADI 10    ; we want offset 10 in page 3
+000D: 9871; -- OUT EXTMEM_OFFSET_EN
+000E: B806; -- LOADI 6
+000F: 9873; -- OUT EXTMEM_DATA_EN       ; write into page 3 offset 10
+0010: B800; -- LOADI 0
+0011: 9073; -- IN EXTMEM_DATA_EN
+0012: 9801; -- OUT LEDs
+0013: 2813; -- 	JUMP HERE
+0014: 03FF; -- ALLON: DW 1023
+[0015..07FF] : 0000; -- [empty memory]
 END;

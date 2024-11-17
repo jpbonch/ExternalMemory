@@ -9,12 +9,24 @@ ORG 0
 ;	ADDI   -100
 ;	JNEG   WaitingLoop
 
+LOADI 3
+OUT EXTMEM_PERMISSION_EN
 
 LOADI 3      ; we want to access page 3
 OUT EXTMEM_INDEX_EN
 LOADI 10    ; we want offset 10 in page 3
 OUT EXTMEM_OFFSET_EN
-LOADI 5
+LOADI 7
+OUT EXTMEM_DATA_EN       ; write into page 3 offset 10
+
+LOADI 0
+OUT EXTMEM_PERMISSION_EN
+
+LOADI 3      ; we want to access page 3
+OUT EXTMEM_INDEX_EN
+LOADI 10    ; we want offset 10 in page 3
+OUT EXTMEM_OFFSET_EN
+LOADI 6
 OUT EXTMEM_DATA_EN       ; write into page 3 offset 10
 
 LOADI 0
