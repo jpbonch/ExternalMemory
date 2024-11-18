@@ -27,10 +27,11 @@ ENTITY ExternalMemory IS
         IO_DATA  : INOUT STD_LOGIC_VECTOR(15 DOWNTO 0);
 		  dbg_PAGE_INDEX : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
 		  dbg_PAGE_OFFSET : OUT STD_LOGIC_VECTOR(9 DOWNTO 0);
-		  dbg_MEM_DATA_INPUT: OUT STD_LOGIC_VECTOR(15 DOWNTO 0);
 		  dbg_MEM_DATA_OUTPUT: OUT STD_LOGIC_VECTOR(15 DOWNTO 0);
 		  dbg_FINAL_ADDR: OUT STD_LOGIC_VECTOR(17 DOWNTO 0);
-		  dbg_EXTMEM_EN : OUT    STD_LOGIC
+		  dbg_EXTMEM_EN : OUT    STD_LOGIC;
+		  dbg_HAS_PERMISSION : OUT STD_LOGIC;
+		  dbg_PERMISSION_LEVEL : OUT STD_LOGIC_VECTOR(7 DOWNTO 0)
 		  
     );
 END ExternalMemory;
@@ -38,7 +39,6 @@ END ExternalMemory;
 ARCHITECTURE a OF ExternalMemory IS	 
     SIGNAL PAGE_INDEX       : STD_LOGIC_VECTOR(7 DOWNTO 0);
     SIGNAL PAGE_OFFSET      : STD_LOGIC_VECTOR(9 DOWNTO 0);
-    SIGNAL MEM_DATA_INPUT   : STD_LOGIC_VECTOR(15 DOWNTO 0);
     SIGNAL MEM_DATA_OUTPUT  : STD_LOGIC_VECTOR(15 DOWNTO 0);
     SIGNAL PERMISSION_LEVEL : STD_LOGIC_VECTOR(7 DOWNTO 0);
     SIGNAL FINAL_ADDR       : STD_LOGIC_VECTOR(17 DOWNTO 0);
@@ -50,7 +50,7 @@ ARCHITECTURE a OF ExternalMemory IS
 	 EXTMEM_EN <= EXTMEM_INDEX_EN or EXTMEM_OFFSET_EN or EXTMEM_PERMISSION_EN or EXTMEM_DATA_EN;
 	 FINAL_ADDR <= PAGE_INDEX & PAGE_OFFSET;
 	 
-	 
+	 --check
 	 HAS_PERMISSION <= '1' when (PERMISSION_LEVEL >= PAGE_INDEX) else '0';
 
 	 
@@ -70,23 +70,23 @@ ARCHITECTURE a OF ExternalMemory IS
         numwords_a => 262144,
         widthad_a => 18,
         width_a => 16,
-        intended_device_family => "CYCLONE V",
+        intended_device_family => "MAX 10",
         clock_enable_input_a => "BYPASS",
         clock_enable_output_a => "BYPASS",
         lpm_hint => "ENABLE_RUNTIME_MOD=NO",
         lpm_type => "altsyncram",
         operation_mode => "SINGLE_PORT",
-        outdata_reg_a => "CLOCK0",
+        outdata_reg_a => "UNREGISTERED",
         outdata_aclr_a => "NONE",
         power_up_uninitialized => "FALSE",
         read_during_write_mode_port_a => "NEW_DATA_NO_NBE_READ",
         width_byteena_a => 1
     )
     PORT MAP (
-        wren_a    => IO_WRITE and HAS_PERMISSION,
+        wren_a    => IO_WRITE and HAS_PERMISSION and EXTMEM_DATA_EN,
         clock0    => CLOCK,
         address_a => FINAL_ADDR,
-        data_a    => MEM_DATA_INPUT,
+        data_a    => IO_DATA,
         q_a       => MEM_DATA_OUTPUT
     );
 	 
@@ -96,8 +96,7 @@ ARCHITECTURE a OF ExternalMemory IS
 		  IF RESETN = '0' THEN
 				PAGE_INDEX <= "00000000";
 				PAGE_OFFSET <= "0000000000";
-				MEM_DATA_INPUT <= "0000000000000000";
-				PERMISSION_LEVEL <= "11111111";
+				PERMISSION_LEVEL <= "00111111";
 		  ELSIF RISING_EDGE(CLOCK) THEN
 				
 --		  we need to set the data when we put the offset or index 
@@ -106,8 +105,6 @@ ARCHITECTURE a OF ExternalMemory IS
 						PAGE_INDEX <= IO_DATA (7 DOWNTO 0);
 					ELSIF EXTMEM_OFFSET_EN = '1' THEN
 						PAGE_OFFSET <= IO_DATA (9 DOWNTO 0);
-					ELSIF EXTMEM_DATA_EN = '1' THEN
-						MEM_DATA_INPUT <= IO_DATA;
 					ELSIF EXTMEM_PERMISSION_EN = '1' THEN
 						PERMISSION_LEVEL <= IO_DATA (7 DOWNTO 0);
 					END IF;
@@ -133,9 +130,10 @@ ARCHITECTURE a OF ExternalMemory IS
 	 
 	dbg_PAGE_INDEX <= PAGE_INDEX;
 	dbg_PAGE_OFFSET <= PAGE_OFFSET;
-	dbg_MEM_DATA_INPUT <= MEM_DATA_OUTPUT;
 	dbg_MEM_DATA_OUTPUT <= MEM_DATA_OUTPUT;
 	dbg_FINAL_ADDR <= FINAL_ADDR;
 	dbg_EXTMEM_EN <= EXTMEM_EN;
+	dbg_HAS_PERMISSION <= HAS_PERMISSION;
+	dbg_PERMISSION_LEVEL <= PERMISSION_LEVEL;
 
 END a;

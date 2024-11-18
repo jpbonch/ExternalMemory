@@ -1,52 +1,106 @@
-
 ORG 0
-;LOAD ALLON
-;OUT LEDs
-;Delay:
-;	OUT    Timer
-;WaitingLoop:
-;	IN     Timer
-;	ADDI   -100
-;	JNEG   WaitingLoop
 
-LOADI 3
-OUT EXTMEM_PERMISSION_EN
-
-LOADI 3      ; we want to access page 3
+START:
+LOAD INDEX
 OUT EXTMEM_INDEX_EN
-LOADI 10    ; we want offset 10 in page 3
+LOAD OFFSET
 OUT EXTMEM_OFFSET_EN
-LOADI 7
-OUT EXTMEM_DATA_EN       ; write into page 3 offset 10
+LOAD DATA
+OUT EXTMEM_DATA_EN
 
+LOAD OFFSET
+ADDI 1
+STORE OFFSET
+LOAD DATA
+ADD INDEX
+STORE DATA
+
+LOAD OFFSET
+SUB PAGEMAX
+JNEG START
 LOADI 0
-OUT EXTMEM_PERMISSION_EN
+STORE OFFSET
 
-LOADI 3      ; we want to access page 3
-OUT EXTMEM_INDEX_EN
-LOADI 10    ; we want offset 10 in page 3
-OUT EXTMEM_OFFSET_EN
-LOADI 6
-OUT EXTMEM_DATA_EN       ; write into page 3 offset 10
+STORE DATA
+LOAD INDEX
+ADDI 1
+STORE INDEX
 
-LOADI 0
-IN EXTMEM_DATA_EN
+
+SUB TWOFIVEFIVE
+JZERO READ
+
+JUMP START
+
+
+READ:
+IN Switches
+SUB fiveoneone
+JPOS autoinc
+
+
+LOAD ALLON
 OUT LEDs
+IN Switches
+STORE CurrentSwitch
+SHIFT -5
+AND MASK2
+OUT EXTMEM_INDEX_EN
 
-;LOADI 3      ; we want to access page 3
-;OUT EXTMEM_INDEX_EN
-;LOADI 0
-;IN EXTMEM_INDEX_EN
-;OUT LEDs
+LOAD CurrentSwitch
+AND MASK1
+OUT EXTMEM_OFFSET_EN
+IN EXTMEM_DATA_EN
+OUT Hex1
+
+SwitchChange:
+	IN		Switches
+	STORE	Temp
+	SUB		CurrentSwitch
+	JZERO	SwitchChange
+	JUMP	READ
 
 
-HERE:
-	JUMP HERE
+autoinc:
+IN Switches
+SUB fiveoneone
+JNEG READ
+JZERO READ
+IN EXTMEM_DATA_EN
+OUT Hex1
+Delay:
+	OUT    Timer
+	WaitingLoop:
+	IN     Timer
+	ADDI   -10
+	JNEG   WaitingLoop
+JUMP autoinc
+
+end:
+jump end
+
+
+DATA: DW 1
+INDEX: DW 0
+OFFSET: DW 0
+PAGEMAX: DW 500
+MASK1: DW &H001F
+MASK2: DW &H000F
+TWOFIVEFIVE: DW 4
+Temp: DW 0
+CurrentSwitch: DW 0
+ALLON: DW 1023
+fiveoneone: DW 511
+
 ; IO address constants
 EXTMEM_INDEX_EN:  EQU &H70
 EXTMEM_OFFSET_EN:  EQU &H71
 EXTMEM_PERMISSION_EN:  EQU &H72
 EXTMEM_DATA_EN:  EQU &H73
+Switches:  EQU 000
 LEDs:      EQU 001
 Timer:     EQU 002
-ALLON: DW 1023
+Hex1:      EQU 004
+Hex0:      EQU 005
+
+
